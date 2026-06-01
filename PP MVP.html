@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium Pellets — B2B Platforma MVP</title>
+<style>
+  :root {
+    --green: #2d6a4f;
+    --green-light: #40916c;
+    --green-pale: #d8f3dc;
+    --green-mid: #b7e4c7;
+    --orange: #e76f00;
+    --orange-pale: #fff3e0;
+    --red: #c0392b;
+    --red-pale: #fdecea;
+    --gray-50: #f8f9fa;
+    --gray-100: #f0f2f5;
+    --gray-200: #e4e6ea;
+    --gray-400: #9ca3af;
+    --gray-600: #4b5563;
+    --gray-800: #1f2937;
+    --white: #ffffff;
+    --sidebar-w: 240px;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-100); color: var(--gray-800); font-size: 14px; }
+
+  /* ── LOGIN ── */
+  #screen-login {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 60%, #40916c 100%);
+  }
+  .login-card {
+    background: var(--white); border-radius: 16px; padding: 48px 40px;
+    width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .login-logo { text-align: center; margin-bottom: 32px; }
+  .login-logo .logo-icon { width: 56px; height: 56px; background: var(--green); border-radius: 14px;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 12px; }
+  .login-logo h1 { font-size: 20px; font-weight: 700; color: var(--green); }
+  .login-logo p { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: 8px;
+    font-size: 14px; transition: border-color .2s; outline: none; background: var(--white);
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--green-light); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; }
+  .btn-primary { background: var(--green); color: var(--white); }
+  .btn-primary:hover { background: var(--green-light); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-800); }
+  .btn-secondary:hover { background: var(--gray-200); }
+  .btn-danger { background: var(--red); color: var(--white); }
+  .btn-danger:hover { background: #a93226; }
+  .btn-orange { background: var(--orange); color: var(--white); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--green); color: var(--green); }
+  .btn-outline:hover { background: var(--green-pale); }
+  .btn-full { width: 100%; justify-content: center; padding: 12px; }
+  .login-hint { text-align: center; margin-top: 20px; font-size: 12px; color: var(--gray-400); }
+  .login-hint span { color: var(--green); font-weight: 600; cursor: pointer; }
+
+  /* ── APP SHELL ── */
+  #app { display: none; }
+  .app-layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-w); background: #1b4332; color: var(--white); display: flex;
+    flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+  }
+  .sidebar-brand {
+    padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-brand .brand-name { font-weight: 700; font-size: 15px; }
+  .sidebar-brand .brand-sub { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+  .sidebar-user {
+    padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .user-avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--green-light);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+  }
+  .user-info .user-name { font-size: 13px; font-weight: 600; }
+  .user-info .user-role { font-size: 11px; opacity: 0.5; }
+  .sidebar-nav { padding: 12px 0; flex: 1; }
+  .nav-section-label { padding: 8px 20px 4px; font-size: 10px; opacity: 0.4; text-transform: uppercase; letter-spacing: .08em; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 20px; cursor: pointer;
+    transition: background .15s; border-radius: 0; font-size: 13px; font-weight: 500;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); }
+  .nav-item.active { background: rgba(255,255,255,0.15); border-right: 3px solid #52b788; }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-bottom { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-bottom .nav-item { padding: 9px 0; }
+
+  /* MAIN */
+  .main { margin-left: var(--sidebar-w); flex: 1; }
+  .topbar {
+    background: var(--white); border-bottom: 1px solid var(--gray-200);
+    padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-title { font-size: 16px; font-weight: 700; color: var(--gray-800); }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .badge { display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: var(--green-pale); color: var(--green); }
+  .badge-orange { background: var(--orange-pale); color: var(--orange); }
+  .badge-red { background: var(--red-pale); color: var(--red); }
+  .badge-gray { background: var(--gray-100); color: var(--gray-600); }
+  .content { padding: 24px 28px; }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 700; }
+  .card-sub { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 12px; color: var(--gray-400); font-weight: 500; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--gray-800); line-height: 1; }
+  .stat-unit { font-size: 13px; color: var(--gray-400); font-weight: 400; }
+  .stat-note { font-size: 11px; color: var(--gray-400); margin-top: 6px; }
+
+  /* CALENDAR */
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-header { text-align: center; font-size: 11px; font-weight: 700; color: var(--gray-400);
+    padding: 6px 0; text-transform: uppercase; }
+  .cal-day {
+    border-radius: 8px; padding: 10px 8px; text-align: center; cursor: pointer;
+    transition: all .15s; border: 2px solid transparent; min-height: 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .cal-day:hover { border-color: var(--green-light); }
+  .cal-day.selected { border-color: var(--green); background: var(--green-pale); }
+  .cal-day.empty { background: transparent; cursor: default; }
+  .cal-day.past { opacity: 0.35; cursor: not-allowed; }
+  .cal-day.full { background: var(--red-pale); }
+  .cal-day.partial { background: var(--orange-pale); }
+  .cal-day.available { background: var(--green-pale); }
+  .cal-day-num { font-size: 13px; font-weight: 700; }
+  .cal-day-cap { font-size: 10px; font-weight: 600; line-height: 1.2; }
+  .cal-day-bar { width: 100%; height: 4px; border-radius: 2px; background: var(--gray-200); margin-top: 2px; }
+  .cal-day-fill { height: 100%; border-radius: 2px; background: var(--green); }
+  .cal-day.full .cal-day-fill { background: var(--red); }
+  .cal-day.partial .cal-day-fill { background: var(--orange); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-600); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* STEPS */
+  .steps { display: flex; gap: 0; margin-bottom: 28px; }
+  .step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+  .step:not(:last-child)::after {
+    content: ''; position: absolute; top: 15px; left: 50%; width: 100%;
+    height: 2px; background: var(--gray-200); z-index: 0;
+  }
+  .step.done::after { background: var(--green); }
+  .step-circle {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; z-index: 1; border: 2px solid var(--gray-200);
+    background: var(--white); color: var(--gray-400);
+  }
+  .step.active .step-circle { border-color: var(--green); background: var(--green); color: var(--white); }
+  .step.done .step-circle { border-color: var(--green); background: var(--green); color: var(--white); }
+  .step-label { font-size: 11px; margin-top: 6px; color: var(--gray-400); text-align: center; }
+  .step.active .step-label { color: var(--green); font-weight: 600; }
+
+  /* FORM ROW */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* OPTION CARDS */
+  .option-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .option-card {
+    border: 2px solid var(--gray-200); border-radius: var(--radius); padding: 16px;
+    cursor: pointer; transition: all .15s; text-align: center;
+  }
+  .option-card:hover { border-color: var(--green-light); background: var(--green-pale); }
+  .option-card.selected { border-color: var(--green); background: var(--green-pale); }
+  .option-card .oc-icon { font-size: 28px; margin-bottom: 8px; }
+  .option-card .oc-title { font-size: 13px; font-weight: 700; color: var(--gray-800); }
+  .option-card .oc-desc { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 700; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid var(--gray-100); background: var(--gray-50); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--gray-100); font-size: 13px; vertical-align: middle; }
+  tr:hover td { background: var(--gray-50); }
+  tr:last-child td { border-bottom: none; }
+
+  /* PROGRESS BAR */
+  .progress-bar { background: var(--gray-100); border-radius: 6px; height: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 6px; background: var(--green); }
+  .progress-fill.warn { background: var(--orange); }
+  .progress-fill.danger { background: var(--red); }
+
+  /* ALERT */
+  .alert { border-radius: 8px; padding: 14px 16px; display: flex; gap: 10px; align-items: flex-start; margin-bottom: 16px; }
+  .alert-orange { background: var(--orange-pale); border-left: 3px solid var(--orange); }
+  .alert-red { background: var(--red-pale); border-left: 3px solid var(--red); }
+  .alert-green { background: var(--green-pale); border-left: 3px solid var(--green); }
+  .alert-title { font-weight: 700; font-size: 13px; }
+  .alert-body { font-size: 12px; margin-top: 3px; color: var(--gray-600); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 14px; padding: 28px; width: 520px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-size: 17px; font-weight: 800; }
+  .modal-close { cursor: pointer; font-size: 20px; color: var(--gray-400); line-height: 1; }
+  .modal-close:hover { color: var(--gray-800); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+
+  /* GRID 2-COL */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* NOTIFICATION PREVIEW */
+  .notif-preview {
+    background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px;
+    padding: 16px; font-size: 13px; line-height: 1.6; color: var(--gray-600);
+  }
+  .notif-preview strong { color: var(--gray-800); }
+
+  /* TIME SLOTS */
+  .time-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .time-slot {
+    border: 2px solid var(--gray-200); border-radius: 8px; padding: 10px;
+    text-align: center; cursor: pointer; transition: all .15s;
+  }
+  .time-slot:hover { border-color: var(--green-light); }
+  .time-slot.selected { border-color: var(--green); background: var(--green-pale); }
+  .time-slot.taken { background: var(--gray-100); color: var(--gray-400); cursor: not-allowed; border-color: var(--gray-200); }
+  .time-slot .ts-time { font-size: 13px; font-weight: 700; }
+  .time-slot .ts-info { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+  /* SUMMARY BOX */
+  .summary-box { background: var(--green-pale); border: 1px solid var(--green-mid); border-radius: 10px; padding: 18px; }
+  .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--green-mid); font-size: 13px; }
+  .summary-row:last-child { border-bottom: none; font-weight: 700; font-size: 14px; }
+  .summary-row .sr-label { color: var(--gray-600); }
+
+  /* RANGE SLIDER */
+  input[type=range] { width: 100%; accent-color: var(--green); }
+
+  /* INTEGRATION CARD */
+  .int-card { display: flex; align-items: center; gap: 16px; padding: 14px; border: 1.5px solid var(--gray-200); border-radius: 10px; }
+  .int-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .int-status { margin-left: auto; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--gray-100); }
+  ::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 3px; }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .screen.active { animation: fadeIn .2s ease; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOGIN
+═══════════════════════════════════════════ -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🪵</div>
+      <h1>Premium Pellets</h1>
+      <p>B2B Velkoobchodní platforma</p>
+    </div>
+    <div class="form-group">
+      <label>E-mail / IČO</label>
+      <input type="text" placeholder="info@vasafirma.cz" value="agrotrade@example.cz">
+    </div>
+    <div class="form-group">
+      <label>Heslo</label>
+      <input type="password" value="••••••••">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="loginAs('customer')">Přihlásit se jako zákazník</button>
+    <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="loginAs('admin')">Přihlásit jako administrátor</button>
+    <p class="login-hint">Nemáte přístup? <span>Kontaktujte obchodní oddělení</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     APP
+═══════════════════════════════════════════ -->
+<div id="app">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">🪵</span>
+          <div>
+            <div class="brand-name">Premium Pellets</div>
+            <div class="brand-sub">B2B Platforma</div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar">AT</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarName">AgroTrade s.r.o.</div>
+          <div class="user-role" id="sidebarRole">Velkoobchod</div>
+        </div>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section-label">Přehled</div>
+        <div class="nav-item active" onclick="showScreen('dashboard')">
+          <span class="nav-icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="showScreen('calendar')">
+          <span class="nav-icon">📅</span> Kapacitní kalendář
+        </div>
+        <div class="nav-section-label" style="margin-top:8px;">Objednávky</div>
+        <div class="nav-item" onclick="showScreen('reservation')">
+          <span class="nav-icon">➕</span> Nová rezervace
+        </div>
+        <div class="nav-item" onclick="showScreen('my-reservations')">
+          <span class="nav-icon">📋</span> Moje rezervace
+        </div>
+        <div class="nav-item" onclick="showScreen('logistics')">
+          <span class="nav-icon">🚛</span> Logistika & nakládka
+        </div>
+        <div id="adminNav" style="display:none;">
+          <div class="nav-section-label" style="margin-top:8px;">Administrace</div>
+          <div class="nav-item" onclick="showScreen('admin-capacity')">
+            <span class="nav-icon">⚙️</span> Správa kapacity
+          </div>
+          <div class="nav-item" onclick="showScreen('admin-crisis')">
+            <span class="nav-icon">🚨</span> Krizová automatizace
+          </div>
+          <div class="nav-item" onclick="showScreen('admin-integrations')">
+            <span class="nav-icon">🔗</span> Integrace (CRM / ERP)
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="nav-item" onclick="logout()" style="opacity:.7;">
+          <span class="nav-icon">🚪</span> Odhlásit se
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="screen-dashboard" class="screen active">
+        <div class="topbar">
+          <div class="topbar-title">Dashboard</div>
+          <div class="topbar-actions">
+            <span class="badge badge-green">✓ Výroba v provozu</span>
+            <button class="btn btn-primary" onclick="showScreen('reservation')">+ Nová rezervace</button>
+          </div>
+        </div>
+        <div class="content">
+          <div id="alertArea">
+            <div class="alert alert-orange">
+              <span style="font-size:18px;">⚠️</span>
+              <div>
+                <div class="alert-title">Upozornění: Změna termínu</div>
+                <div class="alert-body">Vaše rezervace #REZ-0042 (15 t, 14. 6.) byla posunuta na 17. 6. z důvodu plánované údržby linky. Nový potvrzovací e-mail byl odeslán.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">Aktivní rezervace</div>
+              <div class="stat-value">3 <span class="stat-unit">obj.</span></div>
+              <div class="stat-note">Celkem 87 tun</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Dnešní kapacita</div>
+              <div class="stat-value">75 <span class="stat-unit">t/den</span></div>
+              <div class="stat-note" style="color:var(--green);">Volných 28 t dnes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Nejbližší nakládka</div>
+              <div class="stat-value" style="font-size:20px;">5. 6.</div>
+              <div class="stat-note">08:00–10:00 • 3AK 1234</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Celkem YTD</div>
+              <div class="stat-value">642 <span class="stat-unit">t</span></div>
+              <div class="stat-note">+12 % vs. loňský rok</div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="gap:20px;">
+            <div class="card">
+              <div class="card-header">
+                <div><div class="card-title">Kapacita — červen 2026</div><div class="card-sub">Klikněte na den pro rezervaci</div></div>
+                <button class="btn btn-outline" onclick="showScreen('calendar')" style="font-size:12px;padding:7px 14px;">Celý kalendář</button>
+              </div>
+              <div class="calendar-grid" id="miniCalendar"></div>
+              <div class="legend" style="margin-top:14px;">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--green-pale);border:1.5px solid var(--green);"></div> Dostupné</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--orange-pale);border:1.5px solid var(--orange);"></div> Téměř plné</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--red-pale);border:1.5px solid var(--red);"></div> Obsazeno</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Moje rezervace</div>
+                <button class="btn btn-secondary" onclick="showScreen('my-reservations')" style="font-size:12px;padding:7px 14px;">Všechny</button>
+              </div>
+              <table>
+                <thead><tr><th>ID</th><th>Datum</th><th>Objem</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td><b>#REZ-0044</b></td><td>20. 6. 2026</td><td>30 t</td><td><span class="badge badge-green">Potvrzeno</span></td></tr>
+                  <tr><td><b>#REZ-0043</b></td><td>10. 6. 2026</td><td>22 t</td><td><span class="badge badge-green">Potvrzeno</span></td></tr>
+                  <tr><td><b>#REZ-0042</b></td><td><s style="color:var(--gray-400)">14. 6.</s> 17. 6.</td><td>15 t</td><td><span class="badge badge-orange">Přesunuto</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── KAPACITNÍ KALENDÁŘ ── -->
+      <div id="screen-calendar" class="screen">
+        <div class="topbar">
+          <div class="topbar-title">📅 Kapacitní kalendář</div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" onclick="showScreen('reservation')">+ Nová rezervace</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Červen 2026 — Dostupná kapacita</div>
+                <div class="card-sub">Denní kapacita: 75 t/den · Klikněte na dostupný den pro zahájení rezervace</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn btn-secondary" style="padding:6px 12px;font-size:13px;">‹ Květen</button>
+                <button class="btn btn-secondary" style="padding:6px 12px;font-size:13px;">Červenec ›</button>
+              </div>
+            </div>
+
+            <div class="calendar-grid" style="margin-bottom:16px;">
+              <div class="cal-header">Po</div><div class="cal-header">Út</div>
+              <div class="cal-header">St</div><div class="cal-header">Čt</div>
+              <div class="cal-header">Pá</div><div class="cal-header">So</div>
+              <div class="cal-header">Ne</div>
+            </div>
+            <div class="calendar-grid" id="fullCalendar"></div>
+
+            <div class="legend" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-100);">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--green-pale);border:1.5px solid var(--green);"></div> Dostupné (plno &lt; 50 %)</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--orange-pale);border:1.5px solid var(--orange);"></div> Téměř plné (50–90 %)</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--red-pale);border:1.5px solid var(--red);"></div> Obsazeno / nedostupné</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--gray-100);border:1.5px solid var(--gray-200);"></div> Víkend / nepracovní den</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px;" id="dayDetailCard" style="display:none;">
+            <div class="card-header">
+              <div class="card-title">📆 Detail dne: <span id="selectedDayLabel">—</span></div>
+            </div>
+            <div id="dayDetailContent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── NOVÁ REZERVACE ── -->
+      <div id="screen-reservation" class="screen">
+        <div class="topbar">
+          <div class="topbar-title">➕ Nová rezervace kapacity</div>
+          <div class="topbar-actions">
+            <button class="btn btn-secondary" onclick="showScreen('dashboard')">✕ Zrušit</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="steps">
+            <div class="step active" id="step1"><div class="step-circle">1</div><div class="step-label">Datum & objem</div></div>
+            <div class="step" id="step2"><div class="step-circle">2</div><div class="step-label">Typ & doprava</div></div>
+            <div class="step" id="step3"><div class="step-circle">3</div><div class="step-label">Logistika</div></div>
+            <div class="step" id="step4"><div class="step-circle">4</div><div class="step-label">Potvrzení</div></div>
+          </div>
+
+          <!-- STEP 1 -->
+          <div id="rez-step1" class="card">
+            <div class="card-header"><div class="card-title">Krok 1: Vyberte datum a objem</div></div>
+            <div class="form-row" style="align-items:start;gap:24px;">
+              <div>
+                <div class="form-group">
+                  <label>Preferované datum</label>
+                  <input type="date" id="rezDate" value="2026-06-20">
+                </div>
+                <div class="form-group">
+                  <label>Objem — <span id="rezTonsLabel" style="color:var(--green);font-weight:700;">30 t</span></label>
+                  <input type="range" min="5" max="75" step="5" value="30" oninput="document.getElementById('rezTonsLabel').textContent=this.value+' t'">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-top:4px;">
+                    <span>Min: 5 t</span><span>Max: 75 t (celá kapacita)</span>
+                  </div>
+                </div>
+                <div class="alert alert-green" style="margin-top:4px;">
+                  <span>✓</span>
+                  <div>
+                    <div class="alert-title">20. 6. 2026 — Dostupné</div>
+                    <div class="alert-body">Volná kapacita: 45 t z 75 t · Váš objem (30 t) je k dispozici</div>
+                  </div>
+                </div>
+              </div>
+              <div style="background:var(--gray-50);border-radius:10px;padding:16px;">
+                <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:10px;">KAPACITA VYBRANÉHO TÝDNE</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Po 15. 6.</span><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;" class="progress-bar"><div class="progress-fill" style="width:85%"></div></div><span style="color:var(--orange);">64/75 t</span></div></div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Út 16. 6.</span><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;" class="progress-bar"><div class="progress-fill danger" style="width:100%"></div></div><span style="color:var(--red);">75/75 t</span></div></div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;"><span>St 17. 6.</span><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;" class="progress-bar"><div class="progress-fill" style="width:40%"></div></div><span style="color:var(--green);">30/75 t</span></div></div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Čt 18. 6.</span><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;" class="progress-bar"><div class="progress-fill" style="width:20%"></div></div><span style="color:var(--green);">15/75 t</span></div></div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="font-weight:700;color:var(--green);">Pá 20. 6. ✓</span><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;" class="progress-bar"><div class="progress-fill" style="width:40%"></div></div><span style="color:var(--green);">30/75 t</span></div></div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+              <button class="btn btn-primary" onclick="nextStep(2)">Pokračovat →</button>
+            </div>
+          </div>
+
+          <!-- STEP 2 -->
+          <div id="rez-step2" class="card" style="display:none;">
+            <div class="card-header"><div class="card-title">Krok 2: Typ paletizace & doprava</div></div>
+
+            <div class="form-group"><label>Typ paletizace</label></div>
+            <div class="option-cards">
+              <div class="option-card selected" onclick="selectOption(this)">
+                <div class="oc-icon">📦</div>
+                <div class="oc-title">Big Bag 750 kg</div>
+                <div class="oc-desc">Pytle 750 kg<br>na paletách</div>
+              </div>
+              <div class="option-card" onclick="selectOption(this)">
+                <div class="oc-icon">🧱</div>
+                <div class="oc-title">Big Bag 975 kg</div>
+                <div class="oc-desc">Pytle 975 kg<br>na paletách</div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;"><label>Obaly</label></div>
+            <div class="option-cards" style="grid-template-columns:1fr 1fr;">
+              <div class="option-card selected" onclick="selectOption(this)">
+                <div class="oc-icon">🏷️</div>
+                <div class="oc-title">Obaly Premium Pellets</div>
+                <div class="oc-desc">Dodáme ve vlastních obalech s logem PP</div>
+              </div>
+              <div class="option-card" onclick="selectOption(this)">
+                <div class="oc-icon">📋</div>
+                <div class="oc-title">Vlastní obaly zákazníka</div>
+                <div class="oc-desc">Plníme do vašich big bagů · nutno dodat předem</div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;"><label>Typ dopravy</label></div>
+            <div class="option-cards" style="grid-template-columns:1fr 1fr;">
+              <div class="option-card selected" onclick="selectTransport(this)">
+                <div class="oc-icon">🚛</div>
+                <div class="oc-title">Vlastní doprava</div>
+                <div class="oc-desc">Přijedete si vlastním vozidlem · Nutno zadat SPZ</div>
+              </div>
+              <div class="option-card" onclick="selectTransport(this)">
+                <div class="oc-icon">📦</div>
+                <div class="oc-title">Naše doprava</div>
+                <div class="oc-desc">Zajistíme dopravu · Doručení do 48h · Příplatek dle km</div>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;margin-top:20px;">
+              <button class="btn btn-secondary" onclick="nextStep(1)">← Zpět</button>
+              <button class="btn btn-primary" onclick="nextStep(3)">Pokračovat →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3 -->
+          <div id="rez-step3" class="card" style="display:none;">
+            <div class="card-header"><div class="card-title">Krok 3: Logistický slot pro nakládku</div></div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Datum nakládky</label>
+                <input type="date" value="2026-06-20">
+              </div>
+              <div class="form-group">
+                <label>SPZ vozidla</label>
+                <input type="text" placeholder="např. 1AK 1234" value="3BT 5678">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Vyberte časový slot (k dispozici pro 20. 6. 2026)</label>
+              <div class="time-slots" style="margin-top:8px;">
+                <div class="time-slot taken"><div class="ts-time">06:00–07:00</div><div class="ts-info">Obsazeno</div></div>
+                <div class="time-slot taken"><div class="ts-time">07:00–08:00</div><div class="ts-info">Obsazeno</div></div>
+                <div class="time-slot selected" onclick="selectSlot(this)"><div class="ts-time">08:00–10:00</div><div class="ts-info">Volné ✓</div></div>
+                <div class="time-slot" onclick="selectSlot(this)"><div class="ts-time">10:00–12:00</div><div class="ts-info">Volné ✓</div></div>
+                <div class="time-slot" onclick="selectSlot(this)"><div class="ts-time">12:00–13:00</div><div class="ts-info">Přestávka</div></div>
+                <div class="time-slot" onclick="selectSlot(this)"><div class="ts-time">13:00–15:00</div><div class="ts-info">Volné ✓</div></div>
+                <div class="time-slot taken"><div class="ts-time">15:00–17:00</div><div class="ts-info">Obsazeno</div></div>
+                <div class="time-slot" onclick="selectSlot(this)"><div class="ts-time">17:00–18:00</div><div class="ts-info">Volné ✓</div></div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:8px;">
+              <label>Poznámka pro dispečink (nepovinné)</label>
+              <textarea rows="2" placeholder="Např. řidič mluví pouze polsky, potřebujeme nakládku z rampy B..."></textarea>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;margin-top:20px;">
+              <button class="btn btn-secondary" onclick="nextStep(2)">← Zpět</button>
+              <button class="btn btn-primary" onclick="nextStep(4)">Pokračovat →</button>
+            </div>
+          </div>
+
+          <!-- STEP 4 -->
+          <div id="rez-step4" class="card" style="display:none;">
+            <div class="card-header"><div class="card-title">Krok 4: Přehled a potvrzení</div></div>
+
+            <div class="summary-box">
+              <div class="summary-row"><span class="sr-label">Datum odběru</span><span><b>20. června 2026</b> (pátek)</span></div>
+              <div class="summary-row"><span class="sr-label">Objem</span><span><b>30 t</b></span></div>
+              <div class="summary-row"><span class="sr-label">Paletizace</span><span>Big Bag 750 kg</span></div>
+              <div class="summary-row"><span class="sr-label">Obaly</span><span>Premium Pellets</span></div>
+              <div class="summary-row"><span class="sr-label">Doprava</span><span>Vlastní · SPZ: 3BT 5678</span></div>
+              <div class="summary-row"><span class="sr-label">Slot nakládky</span><span>08:00–10:00</span></div>
+              <div class="summary-row"><span class="sr-label">Zákazník</span><span>AgroTrade s.r.o.</span></div>
+              <div class="summary-row"><span class="sr-label" style="font-size:14px;font-weight:700;">Celková cena (orientační)</span><span style="font-size:16px;">225 000 Kč <span style="font-size:12px;color:var(--gray-400);">bez DPH</span></span></div>
+            </div>
+
+            <div class="alert alert-green" style="margin-top:16px;">
+              <span>📧</span>
+              <div>
+                <div class="alert-title">Po potvrzení vám přijde</div>
+                <div class="alert-body">E-mail s potvrzením rezervace · Výzva k fakturaci bude automaticky zaslána do ERP (Pohoda) · Obchodní případ bude aktualizován v CRM (Raynet)</div>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;margin-top:20px;">
+              <button class="btn btn-secondary" onclick="nextStep(3)">← Zpět</button>
+              <button class="btn btn-primary" onclick="confirmReservation()" style="padding:12px 28px;font-size:15px;">✓ Potvrdit rezervaci</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MÉ REZERVACE ── -->
+      <div id="screen-my-reservations" class="screen">
+        <div class="topbar">
+          <div class="topbar-title">📋 Moje rezervace</div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" onclick="showScreen('reservation')">+ Nová rezervace</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Všechny rezervace</div>
+              <div style="display:flex;gap:8px;">
+                <select class="form-group" style="border:1.5px solid var(--gray-200);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;">
+                  <option>Všechny statusy</option>
+                  <option>Potvrzeno</option>
+                  <option>Přesunuto</option>
+                  <option>Storno</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>ID</th><th>Datum odběru</th><th>Objem</th><th>Paletizace</th><th>Doprava</th><th>Nakládka</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>#REZ-0044</b></td>
+                    <td>20. 6. 2026</td>
+                    <td><b>30 t</b></td>
+                    <td>Big Bag</td>
+                    <td>Vlastní · 3BT 5678</td>
+                    <td>08:00–10:00</td>
+                    <td><span class="badge badge-green">Potvrzeno</span></td>
+                    <td><button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="showModal('detailModal')">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td><b>#REZ-0043</b></td>
+                    <td>10. 6. 2026</td>
+                    <td><b>22 t</b></td>
+                    <td>15 kg balení</td>
+                    <td>Vlastní · 1AB 2345</td>
+                    <td>13:00–15:00</td>
+                    <td><span class="badge badge-green">Potvrzeno</span></td>
+                    <td><button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td><b>#REZ-0042</b></td>
+                    <td><div style="text-decoration:line-through;color:var(--gray-400);font-size:11px;">14. 6. 2026</div>17. 6. 2026</td>
+                    <td><b>15 t</b></td>
+                    <td>Big Bag</td>
+                    <td>Vlastní · 3BT 5678</td>
+                    <td>10:00–12:00</td>
+                    <td><span class="badge badge-orange">Přesunuto</span></td>
+                    <td><button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td><b>#REZ-0038</b></td>
+                    <td>3. 5. 2026</td>
+                    <td><b>40 t</b></td>
+                    <td>Big Bag 975 kg</td>
+                    <td>Naše doprava</td>
+                    <td>—</td>
+                    <td><span class="badge badge-gray">Dokončeno</span></td>
+                    <td><button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;">Detail</button></td>
+                  </tr>
+                  <tr>
+                    <td><b>#REZ-0031</b></td>
+                    <td>12. 4. 2026</td>
+                    <td><b>25 t</b></td>
+                    <td>15 kg balení</td>
+                    <td>Vlastní · 2CD 9876</td>
+                    <td>06:00–07:00</td>
+                    <td><span class="badge badge-gray">Dokončeno</span></td>
+                    <td><button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;">Detail</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LOGISTIKA ── -->
+      <div id="screen-logistics" class="screen">
+        <div class="topbar">
+          <div class="topbar-title">🚛 Logistika & nakládka</div>
+        </div>
+        <div class="content">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Nadcházející nakládky</div></div>
+              <table>
+                <thead><tr><th>Datum</th><th>Slot</th><th>SPZ</th><th>Objem</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><b>5. 6. 2026</b><div style="font-size:11px;color:var(--green);">Za 4 dny</div></td>
+                    <td>08:00–10:00</td>
+                    <td><span style="font-family:monospace;background:var(--gray-100);padding:2px 6px;border-radius:4px;">3AK 1234</span></td>
+                    <td>22 t</td>
+                    <td><span class="badge badge-green">Potvrzeno</span></td>
+                  </tr>
+                  <tr>
+                    <td><b>17. 6. 2026</b></td>
+                    <td>10:00–12:00</td>
+                    <td><span style="font-family:monospace;background:var(--gray-100);padding:2px 6px;border-radius:4px;">3BT 5678</span></td>
+                    <td>15 t</td>
+                    <td><span class="badge badge-orange">Přesunuto</span></td>
+                  </tr>
+                  <tr>
+                    <td><b>20. 6. 2026</b></td>
+                    <td>08:00–10:00</td>
+                    <td><span style="font-family:monospace;background:var(--gray-100);padding:2px 6px;border-radius:4px;">3BT 5678</span></td>
+                    <td>30 t</td>
+                    <td><span class="badge badge-green">Potvrzeno</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">Nový slot nakládky</div></div>
+              <div class="form-group">
+                <label>Reservation</label>
+                <select><option>REZ-0044 · 20. 6. · 30 t</option><option>REZ-0043 · 10. 6. · 22 t</option></select>
+              </div>
+              <div class="form-group">
+                <label>Datum nakládky</label>
+                <input type="date" value="2026-06-20">
+              </div>
+              <div class="form-group">
+                <label>SPZ vozidla</label>
+                <input type="text" placeholder="1AB 2345">
+              </div>
+              <div class="form-group">
+                <label>Časový slot</label>
+                <div class="time-slots" style="margin-top:6px;">
+                  <div class="time-slot taken"><div class="ts-time">06:00–07:00</div><div class="ts-info">Obsazeno</div></div>
+                  <div class="time-slot taken"><div class="ts-time">07:00–08:00</div><div class="ts-info">Obsazeno</div></div>
+                  <div class="time-slot selected" onclick="selectSlot(this)"><div class="ts-time">08:00–10:00</div><div class="ts-info">Volné ✓</div></div>
+                  <div class="time-slot" onclick="selectSlot(this)"><div class="ts-time">10:00–12:00</div><div class="ts-info">Volné ✓</div></div>
+                  <div class="time-slot" onclick="selectSlot(this)"><div class="ts-time">13:00–15:00</div><div class="ts-info">Volné ✓</div></div>
+                  <div class="time-slot taken"><div class="ts-time">15:00–17:00</div><div class="ts-info">Obsazeno</div></div>
+                </div>
+              </div>
+              <button class="btn btn-primary" style="margin-top:8px;">Uložit slot</button>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px;">
+            <div class="card-header"><div class="card-title">📋 Dispečerský přehled — 5. 6. 2026</div><div class="card-sub">Celkem 5 vozidel, 3 sloty obsazeny</div></div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+              <div style="background:var(--green-pale);border:1.5px solid var(--green);border-radius:8px;padding:12px;grid-column:span 2;">
+                <div style="font-size:11px;font-weight:700;color:var(--green);">08:00–10:00</div>
+                <div style="font-size:13px;font-weight:700;margin-top:4px;">AgroTrade s.r.o.</div>
+                <div style="font-size:11px;color:var(--gray-600);">22 t · Big Bag · <span style="font-family:monospace;">3AK 1234</span></div>
+              </div>
+              <div style="background:var(--green-pale);border:1.5px solid var(--green);border-radius:8px;padding:12px;grid-column:span 2;">
+                <div style="font-size:11px;font-weight:700;color:var(--green);">08:00–10:00</div>
+                <div style="font-size:13px;font-weight:700;margin-top:4px;">Pelety CZ s.r.o.</div>
+                <div style="font-size:11px;color:var(--gray-600);">30 t · Volně · <span style="font-family:monospace;">5XY 4321</span></div>
+              </div>
+              <div style="background:var(--gray-100);border:1.5px dashed var(--gray-200);border-radius:8px;padding:12px;grid-column:span 2;display:flex;align-items:center;justify-content:center;color:var(--gray-400);font-size:12px;">
+                08:00 slot prázdný
+              </div>
+              <div style="background:var(--orange-pale);border:1.5px solid var(--orange);border-radius:8px;padding:12px;grid-column:span 3;">
+                <div style="font-size:11px;font-weight:700;color:var(--orange);">13:00–15:00</div>
+                <div style="font-size:13px;font-weight:700;margin-top:4px;">EkoPalivo a.s.</div>
+                <div style="font-size:11px;color:var(--gray-600);">15 t · 15 kg balení · <span style="font-family:monospace;">2MN 8765</span></div>
+              </div>
+              <div style="background:var(--gray-100);border:1.5px dashed var(--gray-200);border-radius:8px;padding:12px;grid-column:span 3;display:flex;align-items:center;justify-content:center;color:var(--gray-400);font-size:12px;">
+                13:00 slot volný — přiřadit
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN: KAPACITA ── -->
+      <div id="screen-admin-capacity" class="screen">
+        <div class="topbar">
+          <div class="topbar-title">⚙️ Správa kapacity</div>
+          <div class="topbar-actions">
+            <span class="badge badge-green" style="font-size:13px;padding:6px 14px;">Výroba: ✓ Aktivní</span>
+          </div>
+        </div>
+        <div class="content">
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">Denní kapacita</div>
+              <div class="stat-value">75 <span class="stat-unit">t</span></div>
+              <div class="stat-note">Editovatelné</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Zarezervováno dnes</div>
+              <div class="stat-value">47 <span class="stat-unit">t</span></div>
+              <div class="stat-note" style="color:var(--orange);">63 % kapacity</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Tento týden (celkem)</div>
+              <div class="stat-value">312 <span class="stat-unit">t</span></div>
+              <div class="stat-note">z 375 t max</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Zákazníků v VO</div>
+              <div class="stat-value">24</div>
+              <div class="stat-note">8 aktivních res.</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Nastavení kapacity</div></div>
+              <div class="form-group">
+                <label>Denní výrobní kapacita (t/den)</label>
+                <input type="number" value="75">
+              </div>
+              <div class="form-group">
+                <label>Minimální objednávka (t)</label>
+                <input type="number" value="5">
+              </div>
+              <div class="form-group">
+                <label>Maximální rezervace na zákazníka / den (t)</label>
+                <input type="number" value="75">
+              </div>
+              <div class="form-group">
+                <label>Uzávěrka rezervací před odběrem</label>
+                <select><option>24 hodin před</option><option>48 hodin před</option><option>72 hodin před</option></select>
+              </div>
+              <button class="btn btn-primary">Uložit nastavení</button>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">Přehled rezervací — červen 2026</div></div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span><b>Týden 23 (1.–5. 6.)</b></span><span style="color:var(--orange);">298 / 375 t</span></div>
+                  <div class="progress-bar"><div class="progress-fill warn" style="width:79%"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span><b>Týden 24 (8.–12. 6.)</b></span><span style="color:var(--green);">187 / 375 t</span></div>
+                  <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span><b>Týden 25 (15.–19. 6.)</b></span><span style="color:var(--red);">370 / 375 t</span></div>
+                  <div class="progress-bar"><div class="progress-fill danger" style="width:99%"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span><b>Týden 26 (22.–26. 6.)</b></span><span style="color:var(--green);">120 / 375 t</span></div>
+                  <div class="progress-bar"><div class="progress-fill" style="width:32%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px;">
+            <div class="card-header"><div class="card-title">Všechny rezervace — správa</div></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>ID</th><th>Zákazník</th><th>Datum</th><th>Objem</th><th>Status</th><th>Akce</th></tr></thead>
+                <tbody>
+                  <tr><td><b>#REZ-0044</b></td><td>AgroTrade s.r.o.</td><td>20. 6.</td><td>30 t</td><td><span class="badge badge-green">Potvrzeno</span></td><td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;">Upravit</button></td></tr>
+                  <tr><td><b>#REZ-0043</b></td><td>AgroTrade s.r.o.</td><td>10. 6.</td><td>22 t</td><td><span class="badge badge-green">Potvrzeno</span></td><td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;">Upravit</button></td></tr>
+                  <tr><td><b>#REZ-0041</b></td><td>Pelety CZ s.r.o.</td><td>5. 6.</td><td>30 t</td><td><span class="badge badge-green">Potvrzeno</span></td><td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;">Upravit</button></td></tr>
+                  <tr><td><b>#REZ-0040</b></td><td>EkoPalivo a.s.</td><td>15. 6.</td><td>45 t</td><td><span class="badge badge-orange">Čeká</span></td><td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;">Upravit</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN: KRIZE ── -->
+      <div id="screen-admin-crisis" class="screen">
+        <div class="topbar">
+          <div class="topbar-title">🚨 Krizová automatizace</div>
+        </div>
+        <div class="content">
+          <div class="alert alert-orange">
+            <span style="font-size:18px;">⚡</span>
+            <div>
+              <div class="alert-title">Jak krizová automatizace funguje</div>
+              <div class="alert-body">Zadáte skluz výroby (datum od–do). Systém automaticky identifikuje dotčené rezervace, přepočítá dostupné termíny a zákazníkům odešle personalizované e-maily a SMS s novými termíny. Vše s jedním kliknutím.</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Zadat výpadek / skluz výroby</div></div>
+              <div class="form-group">
+                <label>Typ události</label>
+                <select>
+                  <option>🔧 Porucha výrobní linky</option>
+                  <option>🛠️ Plánovaná údržba</option>
+                  <option>⚡ Výpadek energií</option>
+                  <option>🌨️ Jiná příčina</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Výpadek od</label>
+                  <input type="date" value="2026-06-14">
+                </div>
+                <div class="form-group">
+                  <label>Výpadek do</label>
+                  <input type="date" value="2026-06-16">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Redukce kapacity</label>
+                <select>
+                  <option>100 % — úplný výpadek (0 t/den)</option>
+                  <option>50 % — částečná výroba (37,5 t/den)</option>
+                  <option>25 % — omezená výroba (18,75 t/den)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Interní poznámka</label>
+                <textarea rows="2" placeholder="Popis závady, kontaktní osoba...">Porucha granulovací hlavy č. 2 — servis přivolán</textarea>
+              </div>
+              <button class="btn btn-orange" onclick="showModal('crisisPreviewModal')" style="width:100%;justify-content:center;padding:12px;">
+                🔍 Náhled dopadu a notifikací
+              </button>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">Historie krizových událostí</div></div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="border-left:3px solid var(--orange);padding:10px 14px;background:var(--orange-pale);border-radius:0 8px 8px 0;">
+                  <div style="font-size:12px;font-weight:700;color:var(--orange);">14.–16. 6. 2026 — AKTIVNÍ</div>
+                  <div style="font-size:13px;font-weight:700;margin:4px 0;">Porucha linky — 100 % výpadek</div>
+                  <div style="font-size:12px;color:var(--gray-600);">Dotčeno 3 rezervací · 3 e-maily odeslány · 3 SMS odeslány</div>
+                </div>
+                <div style="border-left:3px solid var(--gray-400);padding:10px 14px;background:var(--gray-50);border-radius:0 8px 8px 0;">
+                  <div style="font-size:12px;font-weight:700;color:var(--gray-400);">3.–4. 4. 2026 — uzavřeno</div>
+                  <div style="font-size:13px;font-weight:700;margin:4px 0;">Plánovaná údržba — 50 %</div>
+                  <div style="font-size:12px;color:var(--gray-600);">Dotčeno 5 rezervací · vše přesunuto</div>
+                </div>
+                <div style="border-left:3px solid var(--gray-400);padding:10px 14px;background:var(--gray-50);border-radius:0 8px 8px 0;">
+                  <div style="font-size:12px;font-weight:700;color:var(--gray-400);">18. 2. 2026 — uzavřeno</div>
+                  <div style="font-size:13px;font-weight:700;margin:4px 0;">Výpadek elektřiny — 1 den</div>
+                  <div style="font-size:12px;color:var(--gray-600);">Dotčeno 2 rezervace · vše přesunuto</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN: INTEGRACE ── -->
+      <div id="screen-admin-integrations" class="screen">
+        <div class="topbar">
+          <div class="topbar-title">🔗 Integrace — CRM & ERP</div>
+        </div>
+        <div class="content">
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header"><div class="card-title">Datový tok rezervace</div></div>
+            <div style="display:flex;align-items:center;gap:0;overflow-x:auto;padding:10px 0;">
+              <div style="text-align:center;min-width:110px;">
+                <div style="font-size:28px;">👤</div>
+                <div style="font-size:11px;font-weight:700;margin-top:6px;color:var(--gray-600);">Zákazník<br>zadá rezervaci</div>
+              </div>
+              <div style="flex:1;height:2px;background:var(--green);min-width:30px;position:relative;"><div style="position:absolute;right:-6px;top:-5px;color:var(--green);font-size:14px;">▶</div></div>
+              <div style="text-align:center;min-width:110px;background:var(--green-pale);border:2px solid var(--green);border-radius:10px;padding:12px;">
+                <div style="font-size:28px;">🪵</div>
+                <div style="font-size:11px;font-weight:700;margin-top:6px;color:var(--green);">Premium Pellets<br>Platforma</div>
+              </div>
+              <div style="flex:1;height:2px;background:var(--green);min-width:30px;position:relative;"><div style="position:absolute;right:-6px;top:-5px;color:var(--green);font-size:14px;">▶</div></div>
+              <div style="text-align:center;min-width:110px;">
+                <div style="font-size:28px;">📊</div>
+                <div style="font-size:11px;font-weight:700;margin-top:6px;color:var(--gray-600);">Raynet CRM<br>Obchodní případ</div>
+              </div>
+              <div style="flex:1;height:2px;background:var(--green);min-width:30px;position:relative;"><div style="position:absolute;right:-6px;top:-5px;color:var(--green);font-size:14px;">▶</div></div>
+              <div style="text-align:center;min-width:110px;">
+                <div style="font-size:28px;">🧾</div>
+                <div style="font-size:11px;font-weight:700;margin-top:6px;color:var(--gray-600);">Pohoda ERP<br>Podklad fakturace</div>
+              </div>
+              <div style="flex:1;height:2px;background:var(--green);min-width:30px;position:relative;"><div style="position:absolute;right:-6px;top:-5px;color:var(--green);font-size:14px;">▶</div></div>
+              <div style="text-align:center;min-width:110px;">
+                <div style="font-size:28px;">📧</div>
+                <div style="font-size:11px;font-weight:700;margin-top:6px;color:var(--gray-600);">E-mail / SMS<br>zákazník</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Raynet CRM</div><span class="badge badge-orange">Nakonfigurovat</span></div>
+              <div class="int-card" style="margin-bottom:12px;">
+                <div class="int-icon" style="background:#f0f7ff;">📊</div>
+                <div>
+                  <div style="font-weight:700;font-size:13px;">Raynet CRM</div>
+                  <div style="font-size:12px;color:var(--gray-400);">raynet.cz · REST API</div>
+                </div>
+                <div class="int-status"><span class="badge badge-orange">Čeká na API klíč</span></div>
+              </div>
+              <div class="form-group"><label>API klíč (Raynet)</label><input type="text" placeholder="Vložte API klíč z nastavení Raynet..."></div>
+              <div class="form-group"><label>Subdoména</label><input type="text" placeholder="vasefirma.raynet.cz"></div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-primary">Uložit & otestovat</button>
+                <button class="btn btn-secondary">Testovat připojení</button>
+              </div>
+              <div style="margin-top:12px;font-size:12px;color:var(--gray-600);">
+                <b>Co se synchronizuje:</b> nová rezervace → nový obchodní případ · změna termínu → aktualizace příležitosti · zákazník z CRM → předvyplnění formuláře
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">Pohoda ERP</div><span class="badge badge-orange">Nakonfigurovat</span></div>
+              <div class="int-card" style="margin-bottom:12px;">
+                <div class="int-icon" style="background:#fff8f0;">🧾</div>
+                <div>
+                  <div style="font-weight:700;font-size:13px;">Stormware Pohoda</div>
+                  <div style="font-size:12px;color:var(--gray-400);">XML export / mServer API</div>
+                </div>
+                <div class="int-status"><span class="badge badge-orange">Čeká na nastavení</span></div>
+              </div>
+              <div class="form-group"><label>Pohoda mServer URL</label><input type="text" placeholder="http://192.168.1.100:5336/pohoda"></div>
+              <div class="form-group"><label>Uživatelské jméno Pohoda</label><input type="text" placeholder="admin"></div>
+              <div class="form-group"><label>Heslo</label><input type="password" placeholder="••••••••"></div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-primary">Uložit & otestovat</button>
+              </div>
+              <div style="margin-top:12px;font-size:12px;color:var(--gray-600);">
+                <b>Co se generuje:</b> rezervace → přijatá objednávka v Pohodě · potvrzení nakládky → podklad pro vydanou fakturu
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px;">
+            <div class="card-header"><div class="card-title">E-mail & SMS notifikace</div></div>
+            <div class="form-row three">
+              <div class="form-group"><label>SMTP server</label><input type="text" value="smtp.seznam.cz"></div>
+              <div class="form-group"><label>Odesílatel</label><input type="text" value="rezervace@premiumpellets.cz"></div>
+              <div class="form-group"><label>SMS brána</label><select><option>Twilio</option><option>SMSbrana.cz</option><option>Comgate</option></select></div>
+            </div>
+            <button class="btn btn-primary">Uložit nastavení notifikací</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════ -->
+
+<!-- Confirmation modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎉 Rezervace potvrzena!</div>
+      <div class="modal-close" onclick="closeModal('confirmModal')">✕</div>
+    </div>
+    <div class="alert alert-green">
+      <span>✓</span>
+      <div>
+        <div class="alert-title">REZ-0045 úspěšně vytvořena</div>
+        <div class="alert-body">20. 6. 2026 · 30 t · Big Bag 750 kg · Obaly PP · Slot 08:00–10:00 · SPZ: 3BT 5678</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--gray-600);margin:12px 0;">
+      <b>Automaticky spuštěno:</b><br>
+      ✅ Potvrzovací e-mail odeslán na agrotrade@example.cz<br>
+      ✅ Obchodní případ aktualizován v Raynet CRM<br>
+      ✅ Přijatá objednávka vytvořena v Pohoda ERP<br>
+      ✅ Logistický slot zablokován v dispečerském plánu
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('confirmModal');showScreen('my-reservations')">Zobrazit rezervace</button>
+      <button class="btn btn-primary" onclick="closeModal('confirmModal');showScreen('dashboard')">Zpět na dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- Crisis preview modal -->
+<div class="modal-overlay" id="crisisPreviewModal">
+  <div class="modal" style="width:580px;">
+    <div class="modal-header">
+      <div class="modal-title">🚨 Náhled dopadu výpadku</div>
+      <div class="modal-close" onclick="closeModal('crisisPreviewModal')">✕</div>
+    </div>
+    <div class="alert alert-red">
+      <span>⚠️</span>
+      <div>
+        <div class="alert-title">Výpadek 14.–16. 6. 2026 · Porucha linky · 100 %</div>
+        <div class="alert-body">Dotčeno 3 zákazníků s celkovým objemem 72 t</div>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Dotčené rezervace a nové termíny:</div>
+    <table>
+      <thead><tr><th>Zákazník</th><th>Původní termín</th><th>Nový termín</th><th>Objem</th></tr></thead>
+      <tbody>
+        <tr><td>AgroTrade s.r.o.</td><td style="color:var(--red);">14. 6.</td><td style="color:var(--green);">17. 6.</td><td>15 t</td></tr>
+        <tr><td>Pelety CZ s.r.o.</td><td style="color:var(--red);">15. 6.</td><td style="color:var(--green);">18. 6.</td><td>30 t</td></tr>
+        <tr><td>EkoPalivo a.s.</td><td style="color:var(--red);">16. 6.</td><td style="color:var(--green);">19. 6.</td><td>27 t</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:16px;font-size:13px;font-weight:700;margin-bottom:8px;">Náhled e-mailu zákazníkovi:</div>
+    <div class="notif-preview">
+      Dobrý den, <strong>pane Nováku</strong>,<br><br>
+      dovolujeme si Vás informovat, že z důvodu <strong>poruchy výrobní linky</strong> jsme nuceni posunout Vaši rezervaci <strong>#REZ-0042 (15 t)</strong>.<br><br>
+      Původní termín: <strong style="color:var(--red);">14. 6. 2026</strong><br>
+      Nový termín: <strong style="color:var(--green);">17. 6. 2026</strong> · váš slot 10:00–12:00 zůstává zachován.<br><br>
+      Za způsobené komplikace se omlouváme. V případě dotazů nás kontaktujte na <strong>+420 777 123 456</strong>.<br><br>
+      S pozdravem,<br>Premium Pellets s.r.o.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('crisisPreviewModal')">Upravit</button>
+      <button class="btn btn-danger" onclick="closeModal('crisisPreviewModal');showCrisisSuccess()">🚨 Odeslat notifikace (3 zákazníci)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Detail rezervace #REZ-0044</div>
+      <div class="modal-close" onclick="closeModal('detailModal')">✕</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-row"><span class="sr-label">Zákazník</span><span>AgroTrade s.r.o. · IČO: 12345678</span></div>
+      <div class="summary-row"><span class="sr-label">Datum</span><span>20. 6. 2026 (pátek)</span></div>
+      <div class="summary-row"><span class="sr-label">Objem</span><span>30 t</span></div>
+      <div class="summary-row"><span class="sr-label">Paletizace</span><span>Big Bag 750 kg</span></div>
+      <div class="summary-row"><span class="sr-label">Obaly</span><span>Premium Pellets</span></div>
+      <div class="summary-row"><span class="sr-label">Doprava</span><span>Vlastní · SPZ: 3BT 5678</span></div>
+      <div class="summary-row"><span class="sr-label">Slot nakládky</span><span>08:00–10:00</span></div>
+      <div class="summary-row"><span class="sr-label">Status</span><span><span class="badge badge-green">Potvrzeno</span></span></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;">
+      <span style="font-size:12px;color:var(--gray-400);">🔗 Raynet: </span><span style="font-size:12px;color:var(--green);">Obchodní případ #OP-2026-0044 ↗</span>
+      <span style="font-size:12px;color:var(--gray-400);margin-left:8px;">🧾 Pohoda: </span><span style="font-size:12px;color:var(--green);">Objednávka #PO-1234 ↗</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('detailModal')">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── DATA ──
+  const calData = {
+    // day: [booked_t, available] 0=weekend/off
+    1:{b:0,a:0}, 2:{b:0,a:0}, 3:{b:0,a:0}, 4:{b:0,a:0}, 5:{b:47,a:75},
+    6:{b:0,a:0}, 7:{b:0,a:0}, 8:{b:60,a:75}, 9:{b:75,a:75}, 10:{b:22,a:75},
+    11:{b:50,a:75}, 12:{b:30,a:75}, 13:{b:0,a:0}, 14:{b:0,a:0},
+    15:{b:64,a:75}, 16:{b:75,a:75}, 17:{b:30,a:75}, 18:{b:15,a:75},
+    19:{b:75,a:75}, 20:{b:0,a:0}, 21:{b:0,a:0}, 22:{b:30,a:75},
+    23:{b:0,a:75}, 24:{b:20,a:75}, 25:{b:45,a:75}, 26:{b:55,a:75},
+    27:{b:0,a:0}, 28:{b:0,a:0}, 29:{b:10,a:75}, 30:{b:0,a:75}
+  };
+
+  let currentUser = 'customer';
+  let currentStep = 1;
+
+  function loginAs(role) {
+    currentUser = role;
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    if (role === 'admin') {
+      document.getElementById('sidebarAvatar').textContent = 'AD';
+      document.getElementById('sidebarName').textContent = 'Admin';
+      document.getElementById('sidebarRole').textContent = 'Administrátor';
+      document.getElementById('adminNav').style.display = 'block';
+    }
+    buildCalendar('miniCalendar', true);
+    buildCalendar('fullCalendar', false);
+    showScreen('dashboard');
+  }
+
+  function logout() {
+    document.getElementById('screen-login').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('adminNav').style.display = 'none';
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const map = {
+      'dashboard': 0, 'calendar': 1, 'reservation': 2,
+      'my-reservations': 3, 'logistics': 4,
+      'admin-capacity': 5, 'admin-crisis': 6, 'admin-integrations': 7
+    };
+  }
+
+  function buildCalendar(containerId, mini) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const days = ['Po','Út','St','Čt','Pá','So','Ne'];
+    // June 2026 starts on Monday (offset 0)
+    if (!mini) {
+      // headers already in HTML for full cal
+    }
+
+    const startOffset = 0; // June 1 2026 = Monday
+    for (let i = 0; i < startOffset; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'cal-day empty';
+      container.appendChild(empty);
+    }
+
+    for (let d = 1; d <= 30; d++) {
+      const info = calData[d];
+      const div = document.createElement('div');
+      const isWeekend = info.a === 0;
+      const pct = info.a > 0 ? info.b / info.a : 0;
+
+      let cls = 'cal-day';
+      if (isWeekend) cls += ' past';
+      else if (pct >= 1) cls += ' full';
+      else if (pct >= 0.5) cls += ' partial';
+      else cls += ' available';
+
+      const free = info.a - info.b;
+      div.className = cls;
+      div.innerHTML = `
+        <div class="cal-day-num">${d}</div>
+        ${!isWeekend ? `<div class="cal-day-cap" style="color:${pct>=1?'var(--red)':pct>=0.5?'var(--orange)':'var(--green)'}">${free > 0 ? free+'t volné' : 'plno'}</div>
+        <div class="cal-day-bar"><div class="cal-day-fill" style="width:${Math.min(pct*100,100)}%"></div></div>` : '<div class="cal-day-cap" style="color:var(--gray-400)">víkend</div>'}
+      `;
+      if (!isWeekend && pct < 1) {
+        div.onclick = () => selectDay(d);
+      }
+      container.appendChild(div);
+      if (mini && d >= 14) break;
+    }
+  }
+
+  function selectDay(d) {
+    showScreen('reservation');
+    document.getElementById('rezDate').value = `2026-06-${String(d).padStart(2,'0')}`;
+  }
+
+  function nextStep(n) {
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById('rez-step' + i).style.display = i === n ? 'block' : 'none';
+      const stepEl = document.getElementById('step' + i);
+      stepEl.classList.remove('active', 'done');
+      if (i < n) stepEl.classList.add('done');
+      if (i === n) stepEl.classList.add('active');
+    }
+    currentStep = n;
+  }
+
+  function selectOption(el) {
+    el.closest('.option-cards').querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function selectTransport(el) {
+    el.closest('.option-cards').querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function selectSlot(el) {
+    if (el.classList.contains('taken')) return;
+    el.closest('.time-slots').querySelectorAll('.time-slot:not(.taken)').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function confirmReservation() {
+    showModal('confirmModal');
+    nextStep(1);
+  }
+
+  function showModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  function showCrisisSuccess() {
+    document.getElementById('alertArea').innerHTML = `
+      <div class="alert alert-red">
+        <span style="font-size:18px;">🚨</span>
+        <div>
+          <div class="alert-title">Krizová notifikace odeslána — 3 zákazníci informováni</div>
+          <div class="alert-body">E-maily a SMS odeslány · Rezervace přeplánovány · Pohoda ERP aktualizováno · Raynet CRM aktualizováno</div>
+        </div>
+      </div>`;
+    showScreen('dashboard');
+  }
+
+  // Day detail on full calendar click
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('#fullCalendar .cal-day.available') || e.target.closest('#fullCalendar .cal-day.partial')) {
+      document.getElementById('dayDetailCard').style.display = 'block';
+    }
+  });
+</script>
+</body>
+</html>
